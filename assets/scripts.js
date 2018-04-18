@@ -7469,8 +7469,17 @@ variationName: variation ? variation.name  : ''
 console.error("Optimizely data was not in expected format");
 }
 };
-function setupTrackGrowthForOptimizelyCampaigns(localOptimizely) {
-localOptimizely.push({
+function setupTrackGrowthForOptimizelyCampaigns() {
+if (window.optimizelyFailed) {
+return;
+}
+window.optimizely = window.optimizely || [];
+window.optimizelyCampaignsQueue = window.optimizelyCampaignsQueue || [];
+window.optimizely.push({
+type: "removeListener",
+token: "queueOptimizelyCampaignDecisions"
+});
+window.optimizely.push({
 type: "addListener",
 filter: {
 type: "lifecycle",
@@ -7478,16 +7487,7 @@ name: "campaignDecided"
 },
 handler: optimizelyCampaignDecided
 });
-}
-function optimizely() {
-$timeout( optimizelySync, 10, false );
-}
-function optimizelySync() {
-window.optimizely = window.optimizely || [];
-if ( config.allowExternalScripts !== false ) {
-setupTrackGrowthForOptimizelyCampaigns(window.optimizely);
-loadScript('//cdn.optimizely.com/js/7610134.js');
-}
+window.optimizelyCampaignsQueue.forEach(optimizelyCampaignDecided);
 }
 function loadScript(url, cb) {
 var el = document.createElement('script');
@@ -7644,7 +7644,8 @@ var properties = {
 "Title": document.title,
 "URL": document.URL,
 "Path": window.location.pathname,
-"Referrer": document.referrer
+"Referrer": document.referrer,
+"Optimizely Loaded": !window.optimizelyFailed
 };
 var event = "App - Browsing - Visit Page";
 trackGrowth(event, properties);
@@ -7661,7 +7662,7 @@ debug: ($window.analytics && $window.analytics.debug) || angular.noop,
 segmentIo: segmentIo,
 googleAnalytics: angular.noop, // TODO: Remove all references to this
 outbrain: outbrain,
-optimizely: optimizely
+setupTrackGrowthForOptimizelyCampaigns: setupTrackGrowthForOptimizelyCampaigns,
 };
 }
 })( angular, InVision );
@@ -15576,11 +15577,7 @@ $scope.config = config;
 $scope.share = config.share;
 $scope.bodyStyle = config.share.isEmbed ? { 'background-color': 'rgba(0,0,0,0)' } : '';
 $scope.branding = config.branding;
-try {
-analyticsService.optimizely();
-} catch (error) {
-console.error('Error loading optimizely');
-}
+analyticsService.setupTrackGrowthForOptimizelyCampaigns();
 if (config.isPreview) {
 $scope.isLoadingOpen = true;
 return;
