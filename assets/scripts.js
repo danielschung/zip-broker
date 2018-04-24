@@ -7524,9 +7524,7 @@ app_id: config.intercomAppID
 }
 }
 function  amplitudeInit() {
-if ( config.amplitudeKey ) {
-try {
-getSafeAmplitudeInstance().init(config.amplitudeKey, null, {
+var initParams = {
 saveEvents: true,
 includeUtm: true,
 includeReferrer: true,
@@ -7534,16 +7532,31 @@ batchEvents: true,
 includeGclid: true,
 eventUploadThreshold: 10,
 eventUploadPeriodMillis: 1000
-}, function(instance) {
+};
+if ( config.amplitudeKey ) {
+try {
+window.amplitude.getInstance().init(config.amplitudeKey, null, initParams, function(defaultInstance) {
+getSafeAmplitudeInstance().init(config.amplitudeKey, null, initParams, function(instance) {
 amplitudeFinishedInit = true;
-if ( typeof amplitudeQueue === "object" && amplitudeQueue.length ) {
-while ( amplitudeQueue.length ) {
-var queueItem = amplitudeQueue.shift();
-if (typeof queueItem.function === "function") {
-queueItem.function.apply(this, queueItem.params);
+if(window.amplitudeQueue.length) {
+try {
+window.amplitudeQueue.forEach(function(args) {
+instance.logEvent.apply(instance, args)
+});
+} catch (error) {
+errorLogService.exceptionHandler( error );
 }
 }
+window.amplitudeQueue = {
+push: function(args) {
+try {
+instance.logEvent.apply(instance, args);
+} catch (error) {
+errorLogService.exceptionHandler( error );
 }
+}
+};
+});
 });
 } catch (error) {
 errorLogService.exceptionHandler( error );	
@@ -7592,7 +7605,12 @@ amplitudeQueue.push({ function: identifyGrowth, params: [ id, traits ] } );
 function getSafeAmplitudeInstance() {
 var amplitudeStandaloneInstance;
 try {
-amplitudeStandaloneInstance = window.amplitude && window.amplitude.getInstance("standalone");
+var defaultInstance = window.amplitude && window.amplitude.getInstance();
+var amplitudeStandaloneInstance = window.amplitude && window.amplitude.getInstance("standalone");
+if (defaultInstance) {
+amplitudeStandaloneInstance.setDeviceId(defaultInstance.options.deviceId);
+amplitudeStandaloneInstance.setSessionId(defaultInstance._sessionId);
+}
 } catch ( error ) {
 errorLogService.exceptionHandler( error );
 }
