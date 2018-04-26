@@ -25,6 +25,7 @@
 * @license
 * lodash 3.9.3 (Custom Build) lodash.com/license | Underscore.js 1.8.3 underscorejs.org/LICENSE
 * Build: `lodash modern -o ./lodash.js`
+*
 */
 ;(function(){function n(n,t){if(n!==t){var r=null===n,e=n===m,u=n===n,i=null===t,o=t===m,f=t===t;if(n>t&&!i||!u||r&&!o&&f||e&&f)return 1;if(n<t&&!r||!f||i&&!e&&u||o&&u)return-1}return 0}function t(n,t,r){for(var e=n.length,u=r?e:-1;r?u--:++u<e;)if(t(n[u],u,n))return u;return-1}function r(n,t,r){if(t!==t)return s(n,r);r-=1;for(var e=n.length;++r<e;)if(n[r]===t)return r;return-1}function e(n){return typeof n=="function"||false}function u(n){return typeof n=="string"?n:null==n?"":n+""}function i(n,t){for(var r=-1,e=n.length;++r<e&&-1<t.indexOf(n.charAt(r)););
 return r}function o(n,t){for(var r=n.length;r--&&-1<t.indexOf(n.charAt(r)););return r}function f(t,r){return n(t.a,r.a)||t.b-r.b}function l(n){return Nn[n]}function a(n){return Ln[n]}function c(n){return"\\"+Mn[n]}function s(n,t,r){var e=n.length;for(t+=r?0:-1;r?t--:++t<e;){var u=n[t];if(u!==u)return t}return-1}function p(n){return!!n&&typeof n=="object"}function h(n){return 160>=n&&9<=n&&13>=n||32==n||160==n||5760==n||6158==n||8192<=n&&(8202>=n||8232==n||8233==n||8239==n||8287==n||12288==n||65279==n);
@@ -17062,6 +17063,11 @@ return this;
 }
 function saveComment() {
 var sketches = $scope.exportTempSketches();
+analyticsService.trackGrowth("App - Public Share - Add Comment", {
+Location: "Public Share",
+"Is Reply": !!$scope.comments.length,
+"Logged In": !!sessionService.user.isAccountAuthenticated
+});
 $scope.hideCommentInput = true;
 function processCommentSave( dataUrl, isUnsupported ) {
 Deferred.handlePromise(
@@ -17161,9 +17167,6 @@ userNotified: ( mentions.length > 0 ),
 passwordGiven: $scope.passwordGiven
 }
 );
-analyticsService.trackGrowth("App - Public Share - Add Comment", {
-"Logged In": !!sessionService.user.isAccountAuthenticated
-});
 }
 function setMarkerLabel( skipSave ) {
 skipSave = !! skipSave;
@@ -17218,7 +17221,6 @@ conversationService.saveConversation( $scope.conversation );
 $scope.showNewCommentForm = function() {
 $scope.stopEditingComments();
 $scope.isShowingTeaser = false;
-analyticsService.trackGrowth("App - Public Share - Open Comment Modal");
 };
 $scope.closeIdentifyForm = function() {
 $scope.isIdentifying = false;
@@ -18021,6 +18023,11 @@ function loadConversation(conversationID) {
 var manualConversationID = !! conversationID;
 conversationID = conversationID || requestContext.getParamAsInt( "conversationID", 0 );
 if ( conversationID ) {
+analyticsService.trackGrowth("App - Public Share - Open Comment Modal", {
+Location: "Public Share",
+"Is Reply": true,
+"Logged In": !!sessionService.user.isAccountAuthenticated
+});
 $scope.clearCommentSketches();
 $scope.setIsShowingConversationMenu( false );
 $scope.selectedConversation = null;
@@ -18120,6 +18127,11 @@ var previousConversation = ( $scope.conversations[ previousIndex ] || _.last( $s
 $location.url( "/screens/" + $scope.screenID + "/comments/" + previousConversation.id );
 };
 $scope.startNewConversation = function( x, y ) {
+analyticsService.trackGrowth("App - Public Share - Open Comment Modal", {
+Location: "Public Share",
+"Is Reply": false,
+"Logged In": !!sessionService.user.isAccountAuthenticated
+});
 $scope.newConversation = {
 id: 0,
 x: x / $scope.screen.displayScale,
@@ -18136,9 +18148,6 @@ $scope.isCommentInputVisible = true;
 $scope.setIsShowingConversationMenu( true );
 $scope.setNeedsSignup(false);
 $scope.isSignup = false;
-analyticsService.trackGrowth("App - Public Share - Open Comment Modal",{
-"Logged In": !!sessionService.user.isAccountAuthenticated
-});
 };
 $scope.updateConversationPosition = function( conversation, x, y ) {
 conversation.x = x / $scope.screen.displayScale;
